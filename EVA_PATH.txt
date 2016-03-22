@@ -1,0 +1,44 @@
+V_EVA_PATH = "C:\SATORI\EVA"
+
+_Version = "©SATORI EVA V5.0"
+v_App_Path="D:\NancyLi\EVA\SATORI_EVA_v4\"
+v_ABNChecker_Path="D:\NancyLi\EVA\SATORI_EVA_v4\ABNChecker\"
+fld_ABN="ABN\"
+
+v_AppACL="COMMENT"
+v_AppAX="COMMENT"
+v_AppCWM="COMMENT"
+v_CCMJob="COMMENT"
+
+
+COMM *** set up the switch to choose run EVA with (ON)/without(OFF) AP Invoice, by default is v_APInvoice_ON=T***
+
+v_APInvoice_ON=T
+
+COMM *** set a switch variable to turn the scripts onto ABN checker v3 or v3.1 ***
+
+IF FTYPE("v_ABNChecker_Version")="U" v_ABNChecker_Version="3.1"
+IF v_ABNChecker_Version="3.1" v_ABNChecker3="COMMENT"
+IF v_ABNChecker_Version="3.1" v_ABNChecker31=""
+IF v_ABNChecker_Version<>"3.1" v_ABNChecker3=""
+IF v_ABNChecker_Version<>"3.1" v_ABNChecker31="COMMENT"
+
+DM_Flag=T
+
+COMM *** folder for source data files ***
+
+fld_Data = "Data\"
+fld_Sources = "Sources\"
+fld_Reports = "Reports\"
+fld_Results = "Results\"
+fld_Workings = "Working_Files\"
+fld_Tmps = "Tmp_Files\"
+fld_History = "History\"
+fld_DataMapping = "DataMapping\"
+TXT_Exp_filepath="Reports\"
+fld_GL="GreyList\"
+fld_GL_Path="GreyList\"
+fld_Logs="Logs\"
+
+
+

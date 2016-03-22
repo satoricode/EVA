@@ -1,0 +1,30 @@
+
+COMM *** get excel mapping table ***
+COMM BASICALLY IMPORTS THE WORKBOOKS FROM THE EXCEL MAPPING FILE
+
+Errmsg=""
+DM_Flag=F
+DO LE003_Imp_Mapping 
+
+
+
+COMM *** Convert Source data into ACL application ***
+
+COMM THIS IS FOR VENDORS
+
+DO MP001_Convert_VMF 
+
+COMM THIS IS FOR EMPLOYEES HR DATA
+
+DO MP003_Convert_EMF
+
+COMM THIS IS FOR EMPLOYESS PAYROLL DATA
+
+DO MP004_Convert_Payroll
+
+
+
+
+
+COMM
+DO MZ003_Com_VndEmp

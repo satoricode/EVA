@@ -1,0 +1,6 @@
+MAIN MENU                           5                                                                                  .
+Tests Main Menu                     DO AC001_Main_Menu                                                                 .
+Accounts Payable                    DO AA001_Menu                                                                      .
+Vendor Master Files                 DO VA001_Menu                                                                      .
+Employee Master Files               DO EA001_Menu                                                                      .
+Payroll                             DO PA001_Menu                                                                      .

@@ -1,0 +1,20 @@
+
+
+
+
+LOCATE RECORD v_counter
+
+v_Flds_Type=ALLTRIM(UPPER(Type))
+IF ALLTRIM(Src_File)<>"" src_File_Name=ALLTRIM(Src_File)
+IF NOT MATCH(src_Fld_Nme,"_empty_"," ") AND v_Flds_Type="ASCII" v_Flds_Extract=CLEAN(ALLTRIM(v_Flds_Extract))+ " CLEAN(ALLTRIM(SUBSTR(ALLTRIM("+ALLTRIM(src_Fld_Nme)+"),1,"+ALLTRIM(STRING(Length,3))+"))) AS '"+ALLTRIM(Std_Fld_Nme)+"' " 
+IF NOT MATCH(src_Fld_Nme,"_empty_"," ") AND v_Flds_Type="NUMERIC" v_Flds_Extract=ALLTRIM(v_Flds_Extract)+" DEC("+ALLTRIM(src_Fld_Nme)+","+ALLTRIM(STRING(Decimals,2))+") AS '"+ALLTRIM(Std_Fld_Nme)+"' " 
+IF NOT MATCH(src_Fld_Nme,"_empty_"," ") AND v_Flds_Type<>"ASCII" AND v_Flds_Type<>"NUMERIC"  v_Flds_Extract=ALLTRIM(v_Flds_Extract)+" "+ALLTRIM(src_Fld_Nme)+" AS '"+ALLTRIM(Std_Fld_Nme)+"' " 
+IF MATCH(src_Fld_Nme,"_empty_"," ") AND v_Flds_Type="DATE" v_Flds_Extract=ALLTRIM(v_Flds_Extract)+" CTOD('', 'DD/MM/YYYY') AS '"+ALLTRIM(Std_Fld_Nme)+"' " 
+IF MATCH(src_Fld_Nme,"_empty_"," ") AND MATCH(v_Flds_Type,"NUMERIC","ACL")  v_Flds_Extract=ALLTRIM(v_Flds_Extract)+" 0.00 AS '"+ALLTRIM(Std_Fld_Nme)+"' " 
+IF MATCH(src_Fld_Nme,"_empty_"," ") AND v_Flds_Type="ASCII" v_Flds_Extract=CLEAN(ALLTRIM(v_Flds_Extract))+" BLANKS("+ALLTRIM(STRING(Length,2))+") AS '"+ALLTRIM(Std_Fld_Nme)+"' " 
+
+IF NOT MATCH(src_Fld_Nme,"_empty_"," ") v_COUNT=v_COUNT+1
+
+
+v_counter=v_counter+1
+

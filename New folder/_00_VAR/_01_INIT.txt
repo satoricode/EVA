@@ -1,0 +1,267 @@
+COMM***************************************************************************
+COMM *** SATORI EVA ACL APPLICATION FOR CCM (Caseware, task scheduler)
+COMM *** Execute EMP & PR tests -weekly
+COMM *** Created by Nancy Li (0431 057 135) on 12/01/2015
+COMM***************************************************************************
+
+SET SAFETY OFF
+SET DATE "YYYYMMDD"
+
+SET SESSION CA006_RunPR_Weekly
+
+EXECUTE 'CMD /C "TASKKILL /IM EXCEL.EXE /F"'
+
+COMM***************************************************************************
+COMM *** SATORI EVA ACL APPLICATION
+COMM *** Initialising Variables for the application
+COMM *** CREATED BY: NANCY LI FROM SATORI GROUP 0431 057 135
+COMM *** DATC: 22/06/2012
+COM *** EVA 4.0 upgrade, fixed the bugs and enhancements, make it suitable for ACL desktop, ACL CCM, Caseware CCM, AX CCM
+COMM***************************************************************************
+
+
+SET DATE "DD/MM/YYYY"
+
+IF FTYPE("_Version")="U" DELETE ALL OK
+
+_Version = "©SATORI EVA V4.0"
+v_App_Path="C:\SATORI_EVA_v4.0\SATORI_EVA_v4.0\"
+COMM v_ABNChecker_Path="C:\ABNChecker\"
+v_ABNChecker_Path="C:\ABN_Checker\"
+fld_ABN="ABN\"
+Errmsg=" "
+COMM FilePath Settings for Invoice VMF and VendorBankAccount 
+
+IF FTYPE("fld_VM_AP_Inv_Fld")="U" fld_VM_AP_Inv_Fld="C:\Data\Invoices_"
+IF FTYPE("fld_VM_AP_Inv_Ext")="U" fld_VM_AP_Inv_Ext=".txt"
+IF FTYPE("fld_VM_AP_VMF_Fld")="U" fld_VM_AP_VMF_Fld="C:\Data\VendorMasterfile_"
+IF FTYPE("fld_VM_AP_VMF_Ext")="U" fld_VM_AP_VMF_Ext=".txt"
+IF FTYPE("fld_VM_AP_VMBnk_Fld")="U" fld_VM_AP_VMBnk_Fld="C:\Data\VendorBankAccount_"
+IF FTYPE("fld_VM_AP_VMBnk_Ext")="U" fld_VM_AP_VMBnk_Ext=".txt"
+IF FTYPE("fld_Data_Path")="U" fld_Data_Path = "C:\Data\"
+IF FTYPE("fld_Archive_Path")="U" fld_Archive_Path="C:\Data_Archive\"
+
+COMM 7Zip settings
+IF FTYPE("fld_7Z_Path")="U" fld_7Z_Path = "C:\Program Files\7-Zip\"
+IF FTYPE("v_7Z_Pwd")="U" v_7Z_Pwd = "Satori"
+_Last2YearTranDt = TODAY() - 730
+
+COMM *** set up the switch to run the EVA scripts for ACL desktop, or AX, or CasewarC: ="ACL", ="AX",="CWM" ***
+IF FTYPE("v_ACL_AX_CWM")="U" v_ACL_AX_CWM="ACL"
+
+v_AppACL="COMMENT"
+v_AppAX="COMMENT"
+v_AppCWM="COMMENT"
+v_CCMJob="COMMENT"
+
+IF v_ACL_AX_CWM="ACL" v_AppACL=""
+IF v_ACL_AX_CWM="AX" v_AppAX=""
+IF v_ACL_AX_CWM="CWM" v_AppCWM=""
+IF v_ACL_AX_CWM="ACL" v_CCMJob=""
+
+COMM *** set up the switch to choose run EVA with (ON)/without(OFF) AP Invoice, by default is v_APInvoice_ON=T***
+v_APInvoice_ON=T
+
+COMM *** set a switch variable to turn the scripts onto ABN checker v3 or v3.1 ***
+IF FTYPE("v_ABNChecker_Version")="U" v_ABNChecker_Version="3.1"
+IF v_ABNChecker_Version="3.1" v_ABNChecker3="COMMENT"
+IF v_ABNChecker_Version="3.1" v_ABNChecker31=""
+IF v_ABNChecker_Version<>"3.1" v_ABNChecker3=""
+IF v_ABNChecker_Version<>"3.1" v_ABNChecker31="COMMENT"
+
+DM_Flag=T
+
+COMM *** folder for source data files ***
+fld_Data = "Data\"
+
+fld_Sources = "Sources\"
+fld_Reports = "Reports\"
+fld_Results = "Results\"
+fld_Workings = "Working_Files\"
+fld_Tmps = "Tmp_Files\"
+fld_History = "History\"
+fld_DataMapping = "DataMapping\"
+TXT_Exp_filepath="Reports\"
+fld_GL="GreyList\"
+fld_GL_Path="GreyList\"
+fld_Logs="Logs\"
+
+
+trg_VMF="VMF_Vnd_Master_File"
+trg_VMF_Bk="VMF_BnkAcc"
+trg_VMF_Add="VMF_Address"
+trg_VMF_GL="AP_GrayList"
+trg_VMF_OTV="VMF_Vnd_OneTime"
+trg_VMF_InterCo="VMF_InterCompany"
+trg_AP_Inv="AP_Invoices"
+trg_AP_Pay="AP_Payments"
+trg_AP_PO="AP_PO_Lines"
+trg_AP_InvPO="AP_InvPO"
+trg_EMF="EMF_Emp_Master_File"
+trg_EMF_Bk="EMF_BnkAcc"
+trg_PR_Pay="Payroll_Payments"
+trg_EMF_Lv="EMF_Leaves"
+
+COMM *** History switch ***
+v_ID_KEY=""
+v_TEST_NO=""
+v_ID_KEY=""
+IF FTYPE("v_Exc_History")="U" v_Exc_History=F
+IF FTYPE("v_Chk_CCM")="U" v_Chk_CCM=F
+
+COMM *** GreyList switch ***
+IF FTYPE("v_Exc_GreyList")="U" v_Exc_GreyList=T
+
+COMM *** Generate the fields for the tests ***
+
+v_flds_VMF="%trg_VMF%.Vndr_Site_ID %trg_VMF%.Co %trg_VMF%.Vndr_ID %trg_VMF%.Vndr_Nme %trg_VMF%.ABN %trg_VMF%.Vndr_Sts %trg_VMF%.Vndr_Typ %trg_VMF%.Vndr_Add_Typ %trg_VMF%.ADD1 %trg_VMF%.ADD2 %trg_VMF%.ADD3 %trg_VMF%.City %trg_VMF%.State %trg_VMF%.Pcode %trg_VMF%.Cntry %trg_VMF%.TEL1 %trg_VMF%.TEL2 %trg_VMF%.TEL3 %trg_VMF%.FAX %trg_VMF%.Email1 %trg_VMF%.Email2 %trg_VMF%.Pymnt_Trm CTOD(DATE(%trg_VMF%.Created_Dt),'DD/MM/YYYY') AS 'Created_Dt' CTOD(DATE(%trg_VMF%.Modf_Dt),'DD/MM/YYYY') AS 'Modf_Dt' CTOD(DATE(%trg_VMF%.Vndr_InvlDt),'DD/MM/YYYY') AS 'Vndr_InvlDt' %trg_VMF%.Cha_Field1 %trg_VMF%.Cha_Field2 %trg_VMF%.Cha_Field3 %trg_VMF%.Cha_Field4 %trg_VMF%.Cha_Field5 %trg_VMF%.Num_Field1 %trg_VMF%.Num_Field2 %trg_VMF%.Num_Field3 %trg_VMF%.Num_Field4 %trg_VMF%.Num_Field5 CTOD(DATE(%trg_VMF%.Dt_Field1),'DD/MM/YYYY') AS 'Dt_Field1' CTOD(DATE(%trg_VMF%.Dt_Field2),'DD/MM/YYYY') AS 'Dt_Field2' CTOD(DATE(%trg_VMF%.Dt_Field3),'DD/MM/YYYY') AS 'Dt_Field3' %trg_VMF%.ABN_CLN %trg_VMF%.Max_Inv_Dt %trg_VMF%.c_Vndr_ID"
+
+v_flds_VMF1="Vndr_Site_ID Co Vndr_ID Vndr_Nme ABN Vndr_Sts Vndr_Typ Vndr_Add_Typ ADD1 ADD2 ADD3 City State Pcode Cntry TEL1 TEL2 TEL3 FAX Email1 Email2 Pymnt_Trm CTOD(DATE(Created_Dt),'DD/MM/YYYY') AS 'Created_Dt' CTOD(DATE(Modf_Dt),'DD/MM/YYYY') AS 'Modf_Dt' CTOD(DATE(Vndr_InvlDt),'DD/MM/YYYY') AS 'Vndr_InvlDt' Cha_Field1 Cha_Field2 Cha_Field3 Cha_Field4 Cha_Field5  Num_Field1 Num_Field2 Num_Field3 Num_Field4 Num_Field5 CTOD(DATE(Dt_Field1),'DD/MM/YYYY') AS 'Dt_Field1' CTOD(DATE(Dt_Field2),'DD/MM/YYYY') AS 'Dt_Field2' CTOD(DATE(Dt_Field3),'DD/MM/YYYY') AS 'Dt_Field3' ABN_CLN Max_Inv_Dt c_Vndr_ID"
+
+v_flds_VndEmp="Vnd_Emp_Master.Vndr_Site_ID Vnd_Emp_Master.Vndr_ID Vnd_Emp_Master.Vndr_Nme Vnd_Emp_Master.ABN Vnd_Emp_Master.Vndr_Sts Vnd_Emp_Master.Vndr_Typ Vnd_Emp_Master.ABN Vnd_Emp_Master.BSB Vnd_Emp_Master.Bnk_Acc_Num Vnd_Emp_Master.ADD1 Vnd_Emp_Master.ADD2 Vnd_Emp_Master.ADD3 Vnd_Emp_Master.City Vnd_Emp_Master.State Vnd_Emp_Master.Pcode Vnd_Emp_Master.Cntry Vnd_Emp_Master.TEL1 Vnd_Emp_Master.TEL2 Vnd_Emp_Master.TEL3 Vnd_Emp_Master.FAX Vnd_Emp_Master.Email1 Vnd_Emp_Master.Email2 Vnd_Emp_Master.Inv_Amt Vnd_Emp_Master.GST_AMT Vnd_Emp_Master.COUNT Vnd_Emp_Master.Hire_Dt Vnd_Emp_Master.Trm_Dt Vnd_Emp_Master.Created_Dt Vnd_Emp_Master.Modf_Dt"
+
+v_flds_VMF_BK="Vndr_Site_ID Vndr_ID BSB  Bnk_Acc_Num BSB_NAME Bnk_Acc_Name Bnk_Acc_Type Chg_Dt CTOD(DATE(Dt_Field1),'DD/MM/YYYY') AS 'Dt_Field1' CTOD(DATE(Dt_Field2),'DD/MM/YYYY') AS 'Dt_Field2' Cha_Field1"
+
+v_flds_AP_Inv="Vndr_Site_ID Vndr_ID Vchr_ID ABS_INVAMT isPaid Doc_Typ CTOD(DATE(Inv_Dt),'DD/MM/YYYY') AS 'Inv_Dt' Inv_No Inv_Amt Inv_Amt_Doc Curncy Inv_Net_Amt GST_Amt Btch_No CTOD(DATE(Due_Dt),'DD/MM/YYYY') AS 'Due_Dt' PO_No PO_Net_Amt Descrp CTOD(DATE(Pd_Dt),'DD/MM/YYYY') AS 'Pd_Dt' Pymnt_Trms Modf_By CTOD(DATE(Modf_Dt),'DD/MM/YYYY') AS 'Modf_Dt' CTOD(DATE(Pst_Dt),'DD/MM/YYYY') AS 'Pst_Dt' Ex_Rate VOIDED CTOD(DATE(Void_Dt),'DD/MM/YYYY') AS 'Void_Dt' Num_Field1 Num_Field2 Num_Field3 Num_Field4 Num_Field5 CTOD(DATE(Dt_Field1),'DD/MM/YYYY') AS 'Dt_Field1' CTOD(DATE(Dt_Field2),'DD/MM/YYYY') AS 'Dt_Field2' CTOD(DATE(Dt_Field3),'DD/MM/YYYY') AS 'Dt_Field3' Cha_Field1 Cha_Field2 Cha_Field3 Cha_Field4 Cha_Field5  c_Inv_No c_Inv_Dt Vndr_Mstr_ID Vndr_Nme Vndr_Sts Vndr_Typ"
+
+v_flds_AP_Inv1="%trg_AP_Inv%.Vndr_Site_ID %trg_AP_Inv%.Vndr_ID %trg_AP_Inv%.Vchr_ID %trg_AP_Inv%.ABS_INVAMT %trg_AP_Inv%.isPaid %trg_AP_Inv%.Doc_Typ CTOD(DATE(%trg_AP_Inv%.Inv_Dt),'DD/MM/YYYY') AS 'Inv_Dt' %trg_AP_Inv%.Inv_No %trg_AP_Inv%.Inv_Amt %trg_AP_Inv%.Inv_Amt_Doc %trg_AP_Inv%.Curncy %trg_AP_Inv%.Inv_Net_Amt %trg_AP_Inv%.GST_Amt %trg_AP_Inv%.Btch_No CTOD(DATE(%trg_AP_Inv%.Due_Dt),'DD/MM/YYYY') AS 'Due_Dt' %trg_AP_Inv%.Descrp CTOD(DATE(%trg_AP_Inv%.Pd_Dt),'DD/MM/YYYY') AS 'Pd_Dt' %trg_AP_Inv%.Pymnt_Trms %trg_AP_Inv%.Modf_By CTOD(DATE(%trg_AP_Inv%.Modf_Dt),'DD/MM/YYYY') AS 'Modf_Dt' CTOD(DATE(%trg_AP_Inv%.Pst_Dt),'DD/MM/YYYY') AS 'Pst_Dt' %trg_AP_Inv%.Ex_Rate %trg_AP_Inv%.VOIDED CTOD(DATE(%trg_AP_Inv%.Void_Dt),'DD/MM/YYYY') AS 'Void_Dt' %trg_AP_Inv%.Num_Field1 %trg_AP_Inv%.Num_Field2 %trg_AP_Inv%.Num_Field3 %trg_AP_Inv%.Num_Field4 %trg_AP_Inv%.Num_Field5 CTOD(DATE(%trg_AP_Inv%.Dt_Field1),'DD/MM/YYYY') AS 'Dt_Field1' CTOD(DATE(%trg_AP_Inv%.Dt_Field2),'DD/MM/YYYY') AS 'Dt_Field2' CTOD(DATE(%trg_AP_Inv%.Dt_Field3),'DD/MM/YYYY') AS 'Dt_Field3' %trg_AP_Inv%.Cha_Field1 %trg_AP_Inv%.Cha_Field2 %trg_AP_Inv%.Cha_Field3 %trg_AP_Inv%.Cha_Field4 %trg_AP_Inv%.Cha_Field5 %trg_AP_Inv%.c_Inv_No %trg_AP_Inv%.c_Inv_Dt %trg_AP_Inv%.Vndr_Mstr_ID %trg_AP_Inv%.Vndr_Nme %trg_AP_Inv%.Vndr_Sts %trg_AP_Inv%.Vndr_Typ"
+
+
+v_flds_AP_Pay="Vndr_Site_ID Vchr_ID Vndr_ID Doc_Typ CTOD(DATE(Pay_Dt),'DD/MM/YYYY') AS 'Pay_Dt' Pay_No Pay_Amt Pay_Amt_Doc Curncy Pay_Net_Amt GST_Amt Btch_No CTOD(DATE(Due_Dt),'DD/MM/YYYY') AS 'Due_Dt' PO_No PO_Net_Amt Descrp CTOD(DATE(Pd_Dt),'DD/MM/YYYY') AS 'Pd_Dt' Pymnt_Trms Modf_By CTOD(DATE(Modf_Dt),'DD/MM/YYYY') AS 'Modf_Dt' CTOD(DATE(Pst_Dt),'DD/MM/YYYY') AS 'Pst_Dt' Ex_Rate VOIDED CTOD(DATE(Void_Dt),'DD/MM/YYYY') AS 'Void_Dt' Chq_No Pymnt_Mth Num_Field1 Num_Field2 Num_Field3 Num_Field4 Num_Field5 CTOD(DATE(Dt_Field1),'DD/MM/YYYY') AS 'Dt_Field1' CTOD(DATE(Dt_Field2),'DD/MM/YYYY') AS 'Dt_Field2' CTOD(DATE(Dt_Field3),'DD/MM/YYYY') AS 'Dt_Field3' Cha_Field1 Cha_Field2 Cha_Field3 Cha_Field4 Cha_Field5 c_Pay_No c_Pay_Dt Vndr_Mstr_ID Vndr_Nme Vndr_Sts Vndr_Typ"
+
+v_flds_PO_Ln="Vndr_Site_ID Vndr_ID PO_NO CTOD(DATE(PO_Date),'DD/MM/YYYY') AS 'PO_Date' Amount Net_Price PO_Qty Rec_Qty Rec_Amt CTOD(DATE(Rec_Dt),'DD/MM/YYYY') AS 'Rec_Dt' GST_AMT PO_Line_No Item_Cd Item_Desc Num_Field1 Num_Field2 Num_Field3 Num_Field4 Num_Field5 CTOD(DATE(Dt_Field1),'DD/MM/YYYY') AS 'Dt_Field1' CTOD(DATE(Dt_Field2),'DD/MM/YYYY') AS 'Dt_Field2' CTOD(DATE(Dt_Field3),'DD/MM/YYYY') AS 'Dt_Field3' Cha_Field1 Cha_Field2 Cha_Field3 Cha_Field4 Cha_Field5 "
+
+v_flds_PO="Vndr_Site_ID Vndr_ID PO_NO Amount Rec_Amt PO_Qty Rec_Qty CTOD(DATE(PO_Date),'DD/MM/YYYY') AS 'PO_Date' CTOD(DATE(Rec_Dt),'DD/MM/YYYY') AS 'Rec_Dt' COUNT"
+
+COMM v_flds_EMF="Co_Emp_ID Co COST_CENTRE EMP_Sts Emp_ID Tax_Fle_Num Tax_Scale Title Frst_Nme Second_Given_Name Sur_Nme Add1 Add2 Add3 City State PCode Cntry TEL1 TEL2 TEL3 Fax Email_Bus Email_Privt CTOD(DATE(DOB),'DD/MM/YYYY') AS 'DOB' Sex CTOD(DATE(Hire_Dt),'DD/MM/YYYY') AS 'Hire_Dt' CTOD(DATE(Trm_Dt),'DD/MM/YYYY') AS 'Trm_Dt' Term_Reason_Desc Mrtl_Sts Pref_Nme Prev_Sur_Nme PAY_CLASS_CODE PAY_RATE AVG_TRANS_RATE YEARLY_SALARY Standard_WeeklyHours Emp_Catg CTOD(DATE(Created_Dt),'DD/MM/YYYY') AS 'Created_Dt' CTOD(DATE(Modf_Dt),'DD/MM/YYYY') AS 'Modf_Dt' SLTotalUnits ALTotalUnits LSLTotalUnits Cha_Field1 Cha_Field2 Cha_Field3 Cha_Field4 Cha_Field5 Cha_Field6 Cha_Field7 Cha_Field8 Cha_Field9 Cha_Field10 Emp_Nme c_Hire_Dt BSB Bnk_Acc_Num"
+
+
+v_flds_EMF="ALL"
+
+
+COMM v_flds_EMF1="EMF_TMP_Emp.Co_Emp_ID EMF_TMP_Emp.Co EMF_TMP_Emp.COST_CENTRE EMF_TMP_Emp.EMP_Sts EMF_TMP_Emp.Emp_ID EMF_TMP_Emp.Tax_Fle_Num EMF_TMP_Emp.Tax_Scale EMF_TMP_Emp.Title EMF_TMP_Emp.Frst_Nme EMF_TMP_Emp.Second_Given_Name EMF_TMP_Emp.Sur_Nme EMF_TMP_Emp.Add1 EMF_TMP_Emp.Add2 EMF_TMP_Emp.Add3 EMF_TMP_Emp.City EMF_TMP_Emp.State EMF_TMP_Emp.PCode EMF_TMP_Emp.Cntry EMF_TMP_Emp.TEL1 EMF_TMP_Emp.TEL2 EMF_TMP_Emp.TEL3 EMF_TMP_Emp.Fax EMF_TMP_Emp.Email_Bus EMF_TMP_Emp.Email_Privt CTOD(DATE(EMF_TMP_Emp.DOB),'DD/MM/YYYY') AS 'DOB' EMF_TMP_Emp.Sex CTOD(DATE(EMF_TMP_Emp.Hire_Dt),'DD/MM/YYYY') AS 'Hire_Dt' CTOD(DATE(EMF_TMP_Emp.Trm_Dt),'DD/MM/YYYY') AS 'Trm_Dt' EMF_TMP_Emp.Term_Reason_Desc EMF_TMP_Emp.Mrtl_Sts EMF_TMP_Emp.Pref_Nme EMF_TMP_Emp.Prev_Sur_Nme EMF_TMP_Emp.PAY_CLASS_CODE EMF_TMP_Emp.PAY_RATE EMF_TMP_Emp.AVG_TRANS_RATE EMF_TMP_Emp.YEARLY_SALARY EMF_TMP_Emp.Standard_WeeklyHours EMF_TMP_Emp.Emp_Catg CTOD(DATE(EMF_TMP_Emp.Created_Dt),'DD/MM/YYYY') AS 'Created_Dt' CTOD(DATE(EMF_TMP_Emp.Modf_Dt),'DD/MM/YYYY') AS 'Modf_Dt' EMF_TMP_Emp.SLTotalUnits EMF_TMP_Emp.ALTotalUnits EMF_TMP_Emp.LSLTotalUnits EMF_TMP_Emp.Cha_Field1 EMF_TMP_Emp.Cha_Field2 EMF_TMP_Emp.Cha_Field3 EMF_TMP_Emp.Cha_Field4 EMF_TMP_Emp.Cha_Field5 EMF_TMP_Emp.Cha_Field6 EMF_TMP_Emp.Cha_Field7 EMF_TMP_Emp.Cha_Field8 EMF_TMP_Emp.Cha_Field9 EMF_TMP_Emp.Cha_Field10 EMF_TMP_Emp.Emp_Nme EMF_TMP_Emp.c_Hire_Dt EMF_TMP_Emp.BSB EMF_TMP_Emp.Bnk_Acc_Num"
+
+v_flds_EMF1="ALL"
+
+v_flds_EMF_BK="Co_Emp_ID Emp_ID BSB Bnk_Acc_Num BSB_Name Bnk_Acc_Name Bnk_Acc_Type Chg_Dt"
+
+v_flds_EMF_Leaves="Co_Emp_ID Emp_ID LeaveType LeaveTypeDesc CTOD(DATE(StartDate),'DD/MM/YYYY') AS 'StartDate' CTOD(DATE(EndDate),'DD/MM/YYYY') AS 'EndDate' Units Amount Notes ApprovalStatus ApprovedByCode CTOD(DATE(ApprovedDate),'DD/MM/YYYY') AS 'ApprovedDate' CTOD(DATE(CreatedDate),'DD/MM/YYYY') AS 'CreatedDate' CreatedBy Cha_Field1 Cha_Field2 Cha_Field3 Cha_Field4 Cha_Field5"
+
+COMM v_flds_PR="Line_No Co_Emp_ID Co Cost_Centre Emp_ID PayCode PayCode_Desc PayCode_Amount Currency Pay_Hrs Pay_Rate CTOD(DATE(Prd_Dt),'DD/MM/YYYY') AS 'Prd_Dt' ForPrd InPrd CTOD(DATE(PeriodStart_Dt),'DD/MM/YYYY') AS 'PeriodStart_Dt' CTOD(DATE(PeriodEnd_Dt),'DD/MM/YYYY') AS 'PeriodEnd_Dt' PayGroup GL_Account_No PayRunDesc Num_Field1 Num_Field2 Num_Field3 Num_Field4 Num_Field5 Dt_Field1 Dt_Field2 Dt_Field3 Cha_Field1 Cha_Field2 Cha_Field3 Cha_Field4 Cha_Field5 Cha_Field6 Cha_Field7 Cha_Field8 Cha_Field9 Cha_Field10 Year YM c_Prd_Dt ABS_PayCode_Amount"
+
+
+v_flds_PR="ALL"
+
+
+_RptRunDate=CTOD(DATE(),"DD/MM/YYYY")
+_RptRunDateTime=SUBSTR(ALLTRIM(DATE()) + " "+ ALLTRIM(TIME()),1,19)
+
+_Last2YearTranCha = DATE(_RptRunDate- 365*2)
+_Last2YearTranDt=CTOD(_Last2YearTranCha,"DD/MM/YYYY")
+
+_LastYearTranCha = DATE(_RptRunDate- 365)
+_LastYearTranDt=CTOD(_LastYearTranCha,"DD/MM/YYYY")
+
+_Last_Month = DATE(_RptRunDate- 30)
+_Last_6Month = DATE(_RptRunDate- 180)
+_Last_Week=DATE(_RptRunDate- 7)
+
+_Year = LAST(ALLTRIM(DATE()),4)
+
+COMM *** Inisiate the data range ***
+IF FTYPE("_Data_Range_Start_Date")="v" OR FTYPE("_Data_Range_Start_Date")="U" _Data_Range_Start_Date= _Last2YearTranDt
+IF FTYPE("_Data_Range_End_Date")="v" OR FTYPE("_Data_Range_End_Date")="U"  _Data_Range_End_Date =_RptRunDate
+
+IF FTYPE("_PR_Data_Start_Date")="v" OR FTYPE("_PR_Data_Start_Date")="U" _PR_Data_Start_Date= _LastYearTranDt
+IF FTYPE("_PR_Data_End_Date")="v" OR FTYPE("_PR_Data_End_Date")="U"  _PR_Data_End_Date =_RptRunDate
+
+_CurrentDate = CTOD("01/"+SUBSTR(ALLTRIM(DATE(_RptRunDate)),4,2)+"/"+LAST(ALLTRIM(DATE(_RptRunDate)),4),"DD/MM/YYYY")
+_FiscalYear= LAST(ALLTRIM(DATE(_CurrentDate-28)),4)
+_FiscalYM=SUBSTR(ALLTRIM(DATE(_CurrentDate-28)),4,2)+"/"+LAST(ALLTRIM(DATE(_CurrentDate-28)),4)
+
+
+COMM *** Re-Link the .fil source files to their format *** 
+IF FTYPE("DM_AP_Invoices") = "y" AND FILESIZE("%fld_DataMapping%DM_AP_Invoices.fil")>=0 OPEN "%fld_DataMapping%DM_AP_Invoices.fil" FORMAT DM_AP_Invoices
+IF FTYPE("DM_AP_Payments ") = "y" AND FILESIZE("%fld_DataMapping%DM_AP_Payments .fil")>=0 OPEN "%fld_DataMapping%DM_AP_Payments .fil" FORMAT DM_AP_Payments 
+IF FTYPE("DM_AP_PO_Lines") = "y" AND FILESIZE("%fld_DataMapping%DM_AP_PO_Lines.fil")>=0 OPEN "%fld_DataMapping%DM_AP_PO_Lines.fil" FORMAT DM_AP_PO_Lines
+
+IF FTYPE("DM_VMF_Vnd_Master_File") = "y" AND FILESIZE("%fld_DataMapping%DM_VMF_Vnd_Master_File.fil")>=0 OPEN "%fld_DataMapping%DM_VMF_Vnd_Master_File.fil" FORMAT DM_VMF_Vnd_Master_File
+IF FTYPE("DM_VMF_Address") = "y" AND FILESIZE("%fld_DataMapping%DM_VMF_Address.fil")>=0 OPEN "%fld_DataMapping%DM_VMF_Address.fil" FORMAT DM_VMF_Address
+IF FTYPE("DM_VMF_BnkAcc") = "y" AND FILESIZE("%fld_DataMapping%DM_VMF_BnkAcc.fil")>=0 OPEN "%fld_DataMapping%DM_VMF_BnkAcc.fil" FORMAT DM_VMF_BnkAcc
+IF FTYPE("DM_VMF_InterCompany") = "y" AND FILESIZE("%fld_DataMapping%DM_VMF_InterCompany.fil")>=0 OPEN "%fld_DataMapping%DM_VMF_InterCompany.fil" FORMAT DM_VMF_InterCompany
+IF FTYPE("DM_VMF_Vnd_OneTime") = "y" AND FILESIZE("%fld_DataMapping%DM_VMF_Vnd_OneTime.fil")>=0 OPEN "%fld_DataMapping%DM_VMF_Vnd_OneTime.fil" FORMAT DM_VMF_Vnd_OneTime
+IF FTYPE("DM_AP_GrayList") = "y" AND FILESIZE("%fld_DataMapping%DM_AP_GrayList.fil")>=0 OPEN "%fld_DataMapping%DM_AP_GrayList.fil" FORMAT DM_AP_GrayList
+
+IF FTYPE("DM_Payroll_Payments") = "y" AND FILESIZE("%fld_DataMapping%DM_Payroll_Payments.fil")>=0 OPEN "%fld_DataMapping%DM_Payroll_Payments.fil" FORMAT DM_Payroll_Payments
+IF FTYPE("DM_EMF_Emp_Master_File") = "y" AND FILESIZE("%fld_DataMapping%DM_EMF_Emp_Master_File.fil")>=0 OPEN "%fld_DataMapping%DM_EMF_Emp_Master_File.fil" FORMAT DM_EMF_Emp_Master_File
+IF FTYPE("DM_EMF_BnkAcc") = "y" AND FILESIZE("%fld_DataMapping%DM_EMF_BnkAcc.fil")>=0 OPEN "%fld_DataMapping%DM_EMF_BnkAcc.fil" FORMAT DM_EMF_BnkAcc
+
+COMM *** Payroll Code Type query variables ***
+v_PeriodGrossAmount="NOT FIND('Payroll Tax',PayCode_Desc) AND NOT FIND('Superannuation',PayCode_Desc) AND NOT FIND('Loading',PayCode_Desc) "
+v_PaidAmount="NOT FIND('Payroll Tax',PayCode_Desc) AND NOT FIND('Superannuation',PayCode_Desc) AND NOT FIND('Loading',PayCode_Desc) "
+v_SalaryHours="PayCode='SAL' "
+v_WorkedHours="Pay_Hrs<>0.00"
+v_TerminationAmount="FIND('Termination',PayCode_Desc)"
+v_Overtime="FIND('OT  ',PayCode_Desc) OR FIND('Overtime ',PayCode_Desc)"
+v_Allowance="FIND('Allowance',PayCode_Desc)"
+v_LongServiceLeave="FIND('LSL ',PayCode_Desc) OR FIND('LONG SERVICE LEAVE',PayCode_Desc)"
+v_SpecialLeave="MATCH(PayCode_Desc,'Do Not Pay','Inactive Status','Income Protection','Long Term Unpaid Leave','Parental Leave','Paternity Leave','Workers Compensation')"
+COMM *** e.g. TXT_PR006_SuperPayCodes="MATCH(PayCode,'Super Company Contrib')" just for example, need to confirm with client ***
+v_SuperPayCodes="FIND('Superannuation Voluntary',PayCode_Desc)"
+v_IsSuperablePayCodes="NOT MATCH(PayCode_Desc,'Payroll Tax; PAYROLL TAX SOUTH AUST','Superannuation Voluntary;','Annual Leave; LEAVE LOADING')"
+
+
+COMM *** create working folders if they are not existing***
+DO ZA001_CreateFlds
+
+
+
+COMM *** remove the dialog or pause when runing the jobs in automation mode***
+v_CCMJob="COMMENT"
+
+
+SET DATE "YYYYMMDD"
+
+F_Append=T
+
+COMM *** Prepare variables ***
+v_Exc_GreyList=F
+
+COMM *** Execute tests ***
+v_Exc_History=T
+
+
+
+COMM *** created the sub archive folder to archive the old PMT file***
+TXT_Exp_filepath="Reports\PRW_"+ALLTRIM(DATETIME(_RptRunDate,'YYYYMMDD'))+"\"
+
+
+
+
+
+
+
+COMM *** delete all temperary tables ***
+DO AE003_Del_Tmp
+
+CLOSE PRIMARY SECONDARY
+
+COMM *** Export the file into delimited or access files 1: Access; 4: delimited; 2: Excel***
+rad1=2
+
+v_CW=""
+DO UZ006_CHK_Exp_F
+CHK_Exp_EM001=T
+CHK_Exp_EM002=T
+CHK_Exp_EM006=T
+CHK_Exp_EM009=T
+
+DO UU001_Export
+
+COMM *** delete tmp files and relations ***
+DO AE003_Del_Tmp
+CLOSE
+
+SET SESSION
+
+%v_AppCWM% QUIT

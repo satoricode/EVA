@@ -1,0 +1,6 @@
+MAIN MENU                            5                                        .
+Data Main Menu                       DO DA001_Menu                            .
+Import Source Data                   DO IA001_Menu                            .
+Link Fields / Mapping                DO LE001_Link_Menu                       .
+Convert Data into EVA                DO MA001_Main_Menu                       .
+Export Results to Other Application  DO UA001_Export_Menu                     .
