@@ -1,0 +1,11 @@
+1. Run SetupABNChecker3.2.2.msi
+2. Next, Next, bla, bla.
+3. From Windows Start Menu, click Launch ABNLookupConfiguration.
+4. You will get a message saying 'The activation serial is empty'. Click OK.
+5. Enter activation serial. Click OK.
+6. Configure 'Source File' and 'Target File'
+7. Enter guid
+8. Test.
+9. Save.
+
+You can run it now. If it disappears very briefly then disappears, then check your permissions to the folder: C:\ProgramData\Satori
