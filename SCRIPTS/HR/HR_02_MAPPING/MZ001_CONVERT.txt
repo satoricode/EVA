@@ -10,10 +10,12 @@ COMM***************************************************************************
 
 SET FOLDER /z_WORKING_DATA
 
+
 COMM *** convert Employee master file ***
 
 COMM *** Capture the linkage relationships for the data mapping, convert the source data into target standard table ***
 OPEN DM_%trg_EMF%
+
 
 COMM *** Extract the mapping information from the mapping file (e.g. DM_VMF_Vnd_Master_File)***
 src_File_Name=BLANKS(1000)
@@ -27,7 +29,9 @@ COUNT
 SET FOLDER /z_WORKING_DATA/LOOP_SCR
 
 v_counter=1
-DO "%V_EVA_PATH%\SYSTEM\MZ002_Convert_Sub.txt" WHILE v_counter<=COUNT1
+
+
+DO "%V_EVA_MOD_PATH%\%V_EVA_MODULE%_02_MAPPING\MZ002_Convert_Sub.txt" WHILE v_counter<=COUNT1
 
 DELETE FOLDER /z_WORKING_DATA/LOOP_SCR OK
 
@@ -38,7 +42,7 @@ IF src_File_Name="" OR v_COUNT=0 OR v_Flds_Extract="" DO LE001_Link_Menu
 COMM *** IF relationship between source table and target table has been build, convert data directely. ***
 
 IF src_File_Name<>"" AND v_Flds_Extract<>""  OPEN %src_File_Name%
-IF src_File_Name<>"" AND v_Flds_Extract<>"" EXTRACT FIELDS %v_Flds_Extract%  TO "%fld_Workings%%trg_EMF%.FIL"
+IF src_File_Name<>"" AND v_Flds_Extract<>"" EXTRACT FIELDS %v_Flds_Extract%  TO "%trg_EMF%.FIL"
 
 %v_CCMJob% IF FILESIZE("%fld_Workings%%trg_EMF%.fil")<=0 PAUSE "Employee Master File Table has not been convert properly. Please check the fields mapping and convert it again."
 IF FILESIZE("%fld_Workings%%trg_EMF%.fil")<=0 ESCAPE
@@ -46,6 +50,8 @@ IF FILESIZE("%fld_Workings%%trg_EMF%.fil")<=0 ESCAPE
 COMM *** convert Employee Bank Accounts***
 OPEN DM_%trg_EMF_BK%
 DO MZ001_Convert
+
+
 IF src_File_Name<>"" AND v_Flds_Extract<>""  OPEN %src_File_Name%
 IF src_File_Name<>"" AND v_Flds_Extract<>"" EXTRACT FIELDS %v_Flds_Extract% TO "%fld_Workings%%trg_EMF_BK%_Tmp.FIL" OPEN
 
@@ -139,4 +145,3 @@ COMM *** END Save all historical changes into VMF_Chg_History ***
 IF FTYPE("%trg_EMF_BK%_Tmp")="y" DELETE FORMAT %trg_EMF_BK%_Tmp OK
 IF FTYPE("%trg_EMF_BK%_Tmp")="y" DELETE "%fld_Workings%%trg_EMF_BK%_Tmp.FIL" OK
 
-SET SAFETY ON
