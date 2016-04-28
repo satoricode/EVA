@@ -1,0 +1,87 @@
+
+DELETE BATCH ___SATORI_EVA_HR OK
+
+
+V_EVA_MODULE = "HR"
+V_EVA_MOD_PATH = "%V_EVA_PATH%\MODULES\%V_EVA_MODULE%"
+
+V_EVA_MAPPING_DOC = "DataMapping\DataMapping.xlsx"
+
+F_Append=T
+
+COMM *** Prepare variables ***
+v_Exc_GreyList=F
+
+COMM *** Execute tests ***
+
+v_Exc_History=T
+
+COMMENT
+XLSX MAPPING FILE WORKBOOK NAMES
+END
+
+COMM
+trg_EMF = "EMF_MASTER_FILE"
+trg_EMF_BK = "EMF_BANKACC"
+trg_EMF_LVE = "EMF_Leaves"
+trg_PR = "Payroll_Payments"
+END
+
+trg_VMF="VMF_Vnd_Master_File"
+trg_VMF_Bk="VMF_BnkAcc"
+trg_VMF_Add="VMF_Address"
+trg_VMF_GL="AP_GrayList"
+trg_VMF_OTV="VMF_Vnd_OneTime"
+trg_VMF_InterCo="VMF_InterCompany"
+trg_AP_Inv="AP_Invoices"
+trg_AP_Pay="AP_Payments"
+trg_AP_PO="AP_PO_Lines"
+trg_AP_InvPO="AP_InvPO"
+trg_EMF="EMF_Emp_Master_File"
+trg_EMF_Bk="EMF_BnkAcc"
+trg_PR_Pay="Payroll_Payments"
+trg_EMF_Lv="EMF_Leaves"
+
+COMMENT
+HR ANALYTICS 
+SET THEM TO TRUE OR FALSE TO RUN THE TEST
+END
+
+V_HR_ANALYTIC_501 = T
+V_HR_ANALYTIC_502 = T
+V_HR_ANALYTIC_503 = T
+V_HR_ANALYTIC_504 = T
+V_HR_ANALYTIC_505 = T
+V_HR_ANALYTIC_506 = T
+V_HR_ANALYTIC_507 = T
+V_HR_ANALYTIC_508 = T
+V_HR_ANALYTIC_509 = T
+V_HR_ANALYTIC_510 = T
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DELETE SCRIPT HR_SCR_ROUTE OK
+SET FOLDER /z_WORKING_DATA
+
+DO "%V_EVA_MOD_PATH%\%V_EVA_MODULE%_SCR_ROUTE.txt"
