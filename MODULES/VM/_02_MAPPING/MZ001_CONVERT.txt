@@ -1,0 +1,147 @@
+DELETE SCRIPT MZ001_CONVERT OK
+
+COMM***************************************************************************
+COMM *** SATORI EVA ACL APPLICATION
+COMM *** Convert Source Data To Target Working File Tables: Employee Master File
+COMM *** CREATED BY: NANCY LI FROM SATORI GROUP 0431 057 135
+COMM *** DATE: 22/06/2012
+COMM***************************************************************************
+
+
+SET FOLDER /z_WORKING_DATA
+
+
+COMM *** convert Employee master file ***
+
+COMM *** Capture the linkage relationships for the data mapping, convert the source data into target standard table ***
+OPEN DM_%trg_EMF%
+
+
+COMM *** Extract the mapping information from the mapping file (e.g. DM_VMF_Vnd_Master_File)***
+src_File_Name=BLANKS(1000)
+v_Flds_Extract=BLANKS(2000)
+
+v_COUNT=0
+v_Flds_Type=BLANKS(10)
+
+COUNT
+
+SET FOLDER /z_WORKING_DATA/LOOP_SCR
+
+v_counter=1
+
+
+DO "%V_EVA_MOD_PATH%\%V_EVA_MODULE%_02_MAPPING\MZ002_Convert_Sub.txt" WHILE v_counter<=COUNT1
+
+DELETE FOLDER /z_WORKING_DATA/LOOP_SCR OK
+
+COMM *** IF relationship between source table and target table has not been build, need to build the relationship first, goto the menu "Link fields/Mapping" ***
+%v_CCMJob% IF src_File_Name="" OR v_COUNT=0 OR v_Flds_Extract="" PAUSE "There is no data mapping information - Employee Master File, please link/map the source fields to the standard fields first."
+IF src_File_Name="" OR v_COUNT=0 OR v_Flds_Extract="" DO LE001_Link_Menu
+
+COMM *** IF relationship between source table and target table has been build, convert data directely. ***
+
+IF src_File_Name<>"" AND v_Flds_Extract<>""  OPEN %src_File_Name%
+IF src_File_Name<>"" AND v_Flds_Extract<>"" EXTRACT FIELDS %v_Flds_Extract%  TO "%trg_EMF%.FIL"
+
+%v_CCMJob% IF FILESIZE("%fld_Workings%%trg_EMF%.fil")<=0 PAUSE "Employee Master File Table has not been convert properly. Please check the fields mapping and convert it again."
+IF FILESIZE("%fld_Workings%%trg_EMF%.fil")<=0 ESCAPE
+
+COMM *** convert Employee Bank Accounts***
+OPEN DM_%trg_EMF_BK%
+DO MZ001_Convert
+
+
+IF src_File_Name<>"" AND v_Flds_Extract<>""  OPEN %src_File_Name%
+IF src_File_Name<>"" AND v_Flds_Extract<>"" EXTRACT FIELDS %v_Flds_Extract% TO "%fld_Workings%%trg_EMF_BK%_Tmp.FIL" OPEN
+
+EXTRACT FIELDS ALL IF INCLUDE(Bnk_Acc_Num,"0123456789") <>"" TO "%fld_Workings%%trg_EMF_BK%.FIL" 
+
+COMM *** convert Employee Leaves***
+v_cmtLv=""
+%v_cmtLv% IF FTYPE("DM_%trg_EMF_Lv%")="U" v_cmtLv="COMMENT"
+%v_cmtLv% OPEN DM_%trg_EMF_Lv%
+%v_cmtLv% DO MZ001_Convert
+%v_cmtLv% IF src_File_Name<>"" AND v_Flds_Extract<>""  OPEN %src_File_Name%
+%v_cmtLv% IF src_File_Name<>"" AND v_Flds_Extract<>"" EXTRACT FIELDS %v_Flds_Extract% TO "%fld_Workings%%trg_EMF_Lv%.FIL" OPEN
+
+COMM *** prepare Employee master file ***
+
+OPEN %trg_EMF%
+INDEX ON Co_Emp_ID TO IDX_Co_Emp_ID
+
+DELETE FIELD Emp_Nme OK
+DEFINE FIELD Emp_Nme COMPUTED SUBSTR(PROPER(ALLTRIM(Sur_Nme))+" " + ALLTRIM(UPPER(Second_Given_Name)) +" "+ PROPER(ALLTRIM(Frst_Nme)),1,65) 
+ 
+DELETE FIELD c_Hire_Dt OK 
+DEFINE FIELD c_Hire_Dt COMPUTED ALLTRIM(SUBSTR(DATE(Hire_Dt),7,4))+ALLTRIM(SUBSTR(DATE(Hire_Dt),4,2))+ALLTRIM(SUBSTR(DATE(Hire_Dt),1,2))
+
+COMM *** Create relations between tables ***
+IF FTYPE("%trg_EMF_BK%")="y" AND FILESIZE("%fld_Workings%%trg_EMF_BK%.fil") >= 0 OPEN %trg_EMF_BK%
+IF FTYPE("%trg_EMF_BK%")="y" AND FILESIZE("%fld_Workings%%trg_EMF_BK%.fil") >= 0 DEFINE RELATION Co_Emp_ID WITH %trg_EMF% INDEX IDX_Co_Emp_ID
+IF FTYPE("%trg_EMF_BK%")="y" AND FILESIZE("%fld_Workings%%trg_EMF_BK%.fil") >= 0 INDEX ON Co_Emp_ID TO IDX_Emp_BK_Co_Emp_ID
+
+%v_cmtLv% OPEN %trg_EMF_Lv%
+%v_cmtLv% DEFINE RELATION Co_Emp_ID WITH %trg_EMF% INDEX IDX_Co_Emp_ID
+
+OPEN %trg_EMF%
+IF FTYPE("%trg_EMF_BK%")="y" AND FILESIZE("%fld_Workings%%trg_EMF_BK%.fil") >= 0 DEFINE RELATION Co_Emp_ID WITH %trg_EMF_BK% INDEX IDX_Emp_BK_Co_Emp_ID
+IF FTYPE("%trg_EMF_BK%")="y" AND FILESIZE("%fld_Workings%%trg_EMF_BK%.fil") >= 0 EXTRACT FIELDS ALL EMF_BnkAcc.BSB EMF_BnkAcc.Bnk_Acc_Num EMF_BnkAcc.BSB_Name EMF_BnkAcc.Bnk_Acc_Name TO "%fld_Workings%EMF_TMP_Emp" OPEN
+ 
+
+INDEX ON Co_Emp_ID TO IDX_EMF_Co_Emp_ID
+
+DELETE FIELD c_Tax_Fle_Num OK
+DEFINE FIELD c_Tax_Fle_Num COMPUTED ALLTRIM(INCLUDE(Tax_Fle_Num, "0123456789"))
+
+DELETE FIELD Invalid_TFN OK
+DEFINE FIELD Invalid_TFN COMPUTED
+
+"F" IF MOD( (((Value(SUBSTR( ALLTRIM(c_Tax_Fle_Num) , 1 , 1 ),0)*1)) + ((Value(SUBSTR( ALLTRIM(c_Tax_Fle_Num) , 2 , 1 ),0)*4)) + ((Value(SUBSTR( ALLTRIM(c_Tax_Fle_Num) , 3 , 1 ),0)*3)) + ((Value(SUBSTR( ALLTRIM(c_Tax_Fle_Num) , 4 , 1 ),0)*7)) + ((Value(SUBSTR( ALLTRIM(c_Tax_Fle_Num) , 5 , 1 ),0)*5)) + ((Value(SUBSTR( ALLTRIM(c_Tax_Fle_Num) , 6 , 1 ),0)*8)) + ((Value(SUBSTR( ALLTRIM(c_Tax_Fle_Num) , 7 , 1 ),0)*6)) + ((Value(SUBSTR( ALLTRIM(c_Tax_Fle_Num) , 8 , 1 ),0)*9)) + ((Value(SUBSTR( ALLTRIM(c_Tax_Fle_Num) , 9 , 1 ),0)*10))) , 11 ) = 0
+"F" IF c_Tax_Fle_Num = "111111111"
+"T"
+
+IF FTYPE("Payroll_Sum_12m")="y" AND FILESIZE("%fld_Workings%Payroll_Sum_12m.fil") >= 0 OPEN EMF_TMP_Emp
+IF FTYPE("Payroll_Sum_12m")="y" AND FILESIZE("%fld_Workings%Payroll_Sum_12m.fil") >= 0 DEFINE RELATION Co_Emp_ID WITH Payroll_Sum_12m INDEX IDX_Payroll_Sum_ID
+
+IF FTYPE("Payroll_Sum_12m")="y" AND FILESIZE("%fld_Workings%Payroll_Sum_12m.fil") >= 0 OPEN EMF_TMP_Emp
+IF FTYPE("Payroll_Sum_12m")="y" AND FILESIZE("%fld_Workings%Payroll_Sum_12m.fil") >= 0 DELETE FIELD Total_PayAmt OK
+IF FTYPE("Payroll_Sum_12m")="y" AND FILESIZE("%fld_Workings%Payroll_Sum_12m.fil") >= 0 DEFINE FIELD Total_PayAmt COMPUTED Payroll_Sum_12m.ActPaidAmt
+IF FTYPE("Payroll_Sum_12m")="y" AND FILESIZE("%fld_Workings%Payroll_Sum_12m.fil") >= 0 DELETE FIELD Total_Pay_Num OK
+IF FTYPE("Payroll_Sum_12m")="y" AND FILESIZE("%fld_Workings%Payroll_Sum_12m.fil") >= 0 DEFINE FIELD Total_Pay_Num COMPUTED Payroll_Sum_12m.COUNT
+
+
+COMMENT
+SR ERR:
+CREATED THIS FIELD
+END
+
+
+DELETE Standard_WeeklyHours OK
+ DEFINE FIELD Standard_WeeklyHours COMPUTED 40
+
+
+
+
+
+
+COMMENT
+SR ADDED ERROR TRAP IF 12 MONTHS PAY DOES NOT EXISTS, TO CREATE THE FIELDS AND ZERO IT...
+END
+
+COMM
+IF FTYPE("Payroll_Sum_12m")="U"  OPEN EMF_TMP_Emp
+IF FTYPE("Payroll_Sum_12m")="U"  DELETE FIELD Total_PayAmt OK
+IF FTYPE("Payroll_Sum_12m")="U"  DEFINE FIELD Total_PayAmt COMPUTED 0
+IF FTYPE("Payroll_Sum_12m")="U"  DELETE FIELD Total_Pay_Num OK
+IF FTYPE("Payroll_Sum_12m")="U"  DEFINE FIELD Total_Pay_Num COMPUTED 0
+END
+ 
+COMM *** BEGIN Save all EMF Bank Account changes into EMF_BnkAcc_Chg_History ***
+IF FTYPE("%trg_EMF_BK%")="y" AND FTYPE("%trg_EMF_BK%_Tmp")="y" DO MZ005_EmpBk_Chg_His
+
+COMM *** END Save all historical changes into VMF_Chg_History ***
+
+IF FTYPE("%trg_EMF_BK%_Tmp")="y" DELETE FORMAT %trg_EMF_BK%_Tmp OK
+IF FTYPE("%trg_EMF_BK%_Tmp")="y" DELETE "%fld_Workings%%trg_EMF_BK%_Tmp.FIL" OK
+

@@ -1,0 +1,580 @@
+COMMENT
+********************************************************************************
+ScriptHub ID: Standardized_Address_M2
+Standardizes a single address field by replacing common address terms such as 
+Av, Ave, and Avenue with a common abbreviation. 
+* 
+LEGAL: These Scripts are provided "as is" and ACL does not warrant that these
+Scripts are free from errors. ACL does not provide Support for Scripts, however,
+assistance is provided through the ACL Support user forum. By using these 
+Scripts you are agreeing to the ACL Script License Agreement, the full document
+can be found here: http://www.acl.com/legal
+********************************************************************************
+END
+
+ COMMENT *** Set system environment
+ SET SAFETY OFF
+ CLOSE PRIMARY SECONDARY
+
+v_output_table = "_SR_TEST"
+v_input_table = "VMF_Address"
+v_test_field = "VF_ADDR5"
+
+
+OPEN VMF_Address
+DELETE VF_ADDR5 OK
+ DEFINE FIELDS VF_ADDR5 COMPUTED ALLTR(add3) + " " + ALLTR(add1)
+
+ CLOSE PRIMARY SECONDARY
+
+SET FOLDER /TMP_ADDR_STD
+
+
+COMMENT
+********************************************************************************
+Process the Common Address Terms mappings
+******************************************************************************** 
+
+ COMMENT *** Create a single record file 
+ DIRECTORY '*.ac' TO T_Dir
+
+
+
+ OPEN T_Dir
+
+
+
+ EXTRACT FIELDS BLANKS(100) AS 'Stub_Field' TO T_Stub FIRST 1 
+
+ COMMENT *** Export the below address mappings to a text file 
+ OPEN T_Stub
+ EXPORT FIELDS '#,NO'  TO Common_Addr_Terms.csv 
+ EXPORT FIELDS '&,AND'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS '1ST,1ST'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS '2ND,2ND'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS '3RD,3RD'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS '4TH,4TH'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS '5TH,5TH'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS '6TH,6TH'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS '7TH,7TH'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS '8TH,8TH'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS '9TH,9TH'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS '10TH,10TH'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'ADMIN,ADMN'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'ADMINISTRATION,ADMN'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'AGENCY,AGCY'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'ALLEE,ALY'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'ALLEY,ALY'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'ALLY,ALY'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'ANEX,ANX'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'ANNEX,ANX'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'ANNX,ANX'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'APARTMENT,APT'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'ARCADE,ARC'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'ASSOC,ASSN'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'ASSOCIATION,ASSN'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'AV,AVE'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'AVEN,AVE'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'AVENEU,AVE'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'AVENIDA,AVE'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'AVENU,AVE'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'AVENUE,AVE'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'AVN,AVE'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'AVNUE,AVE'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'BASEMENT,BSMT'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'BAYOO,BYU'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'BAYOU,BYU'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'BEACH,BCH'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'BEND,BND'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'BLUF,BLF'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'BLUFF,BLF'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'BLUFFS,BLFS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'BOT,BTM'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'BOTTM,BTM'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'BOTTOM,BTM'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'BOUL,BLVD'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'BOULEVARD,BLVD'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'BOULV,BLVD'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'BRANCH,BR'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'BRDGE,BRG'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'BRIDGE,BRG'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'BRNCH,BR'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'BROOK,BRK'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'BROOKS,BRKS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'BUILDING,BLDG'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'BURG,BG'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'BURGS,BGS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'BYPA,BYP'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'BYPAS,BYP'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'BYPASS,BYP'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'BYPS,BYP'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'CALLE,CLL'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'CAMINITO,CMT'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'CAMINO,CAM'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'CAMP,CP'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'CANYN,CYN'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'CANYON,CYN'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'CAPE,CPE'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'CAUSEWAY,CSWY'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'CAUSWA,CSWY'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'CEN,CTR'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'CENT,CTR'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'CENTER,CTR'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'CENTER,CTR'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'CENTER,CTR'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'CENTERS,CTRS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'CENTR,CTR'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'CENTRE,CTR'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'CENTRE,CTR'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'CENTRE,CTR'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'CERRADA,CER'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'CIRC,CIR'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'CIRCL,CIR'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'CIRCLE,CIR'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'CIRCLES,CIRS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'CIRCULO,CIR'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'CLIFF,CLF'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'CLIFFS,CLFS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'CLUB,CLB'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'CMP,CP'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'CNTER,CTR'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'CNTR,CTR'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'CNYN,CYN'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'COMMON,CMN'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'COMMONS,CMNS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'COMPANY,CO'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'CORNER,COR'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'CORNERS,CORS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'CORPORATION,CORP'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'CORPORATION,CORP'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'CORPORATION,CORP'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'COURSE,CRSE'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'COURT,CT'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'COURTS,CTS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'COVE,CV'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'COVES,CVS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'CRCL,CIR'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'CRCLE,CIR'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'CREEK,CRK'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'CRESCENT,CRES'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'CREST,CRST'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'CROSSING,XING'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'CROSSROAD,XRD'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'CROSSROADS,XRDS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'CRSENT,CRES'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'CRSNT,CRES'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'CRSSNG,XING'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'CURVE,CURV'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'DALE,DL'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'DAM,DM'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'DEPARTMENT,DEPT'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'DIV,DV'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'DIVIDE,DV'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'DIVISION,DIV'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'DRIV,DR'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'DRIVE,DR'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'DRIVES,DRS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'DRV,DR'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'DVD,DV'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'E,E'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'EAST,E'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'EIGHTH,8TH'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'EIGTH,8TH'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'ENTERPRISE,ENTPRS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'ENTRADA,ENT'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'ESTATE,EST'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'ESTATES,ESTS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'EXP,EXPY'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'EXPR,EXPY'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'EXPRESS,EXPY'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'EXPRESSWAY,EXPY'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'EXPW,EXPY'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'EXTENSION,EXT'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'EXTN,EXT'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'EXTNSN,EXT'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'FALLS,FLS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'FERRY,FRY'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'FIELD,FLD'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'FIELDS,FLDS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'FIFTH,5TH'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'FIRST,1ST'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'FLAT,FLT'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'FLATS,FLTS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'FLOOR,FL'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'FLR,FL'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'FORD,FRD'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'FORDS,FRDS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'FOREST,FRST'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'FORESTS,FRST'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'FORG,FRG'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'FORGE,FRG'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'FORGES,FRGS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'FORK,FRK'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'FORKS,FRKS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'FORT,FT'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'FOURTH,4TH'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'FREEWAY,FWY'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'FREEWY,FWY'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'FRRY,FRY'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'FRT,FT'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'FRWAY,FWY'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'FRWY,FWY'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'GARDEN,GDN'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'GARDENS,GDNS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'GARDN,GDN'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'GATEWAY,GTWY'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'GATEWY,GTWY'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'GATWAY,GTWY'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'GLEN,GLN'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'GLENS,GLNS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'GOVERNMENT,GOVT'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'GRDEN,GDN'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'GRDN,GDN'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'GRDNS,GDNS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'GREEN,GRN'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'GREENS,GRNS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'GROUP,GP'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'GROV,GRV'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'GROVE,GRV'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'GROVES,GRVS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'GTWAY,GTWY'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'HARB,HBR'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'HARBOR,HBR'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'HARBORS,HBRS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'HARBR,HBR'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'HAVEN,HVN'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'HEADQUARTERS,HQ'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'HEIGHTS,HTS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'HIGHWAY,HWY'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'HIGHWY,HWY'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'HILL,HL'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'HILLS,HLS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'HIWAY,HWY'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'HIWY,HWY'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'HLLW,HOLW'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'HOLLOW,HOLW'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'HOLLOWS,HOLW'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'HOLWS,HOLW'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'HRBOR,HBR'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'HT,HTS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'HWAY,HWY'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'INCORPORATED,INC'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'ISLAND,IS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'ISLANDS,ISS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'ISLES,ISLE'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'ISLND,IS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'ISLNDS,ISS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'JCTION,JCT'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'JCTN,JCT'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'JCTNS,JCTS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'JUNCTION,JCT'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'JUNCTIONS,JCTS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'JUNCTN,JCT'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'JUNCTON,JCT'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'KEY,KY'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'KEYS,KYS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'KNOL,KNL'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'KNOLL,KNL'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'KNOLLS,KNLS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'LABORATORIES,LABS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'LABORATORY,LAB'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'LAKE,LK'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'LAKES,LKS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'LANDING,LNDG'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'LANE,LN'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'LDGE,LDG'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'LIGHT,LGT'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'LIGHTS,LGTS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'LIMITED,LTD'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'LNDNG,LNDG'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'LOAF,LF'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'LOCK,LCK'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'LOCKS,LCKS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'LODG,LDG'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'LODGE,LDG'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'LOOPS,LOOP'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'MANAGEMENT,MGMT'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'MANOR,MNR'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'MANORS,MNRS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'MANUFACTURER,MFR'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'MANUFACTURING,MFG'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'MDW,MDWS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'MEADOW,MDW'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'MEADOWS,MDWS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'MEDOWS,MDWS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'MILL,ML'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'MILLS,MLS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'MISSION,MSN'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'MISSN,MSN'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'MNT,MT'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'MNTAIN,MTN'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'MNTN,MTN'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'MNTNS,MTNS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'MOTORWAY,MTWY'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'MOUNT,MT'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'MOUNTAIN,MTN'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'MOUNTAINS,MTNS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'MOUNTIN,MTN'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'MSSN,MSN'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'MTIN,MTN'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'N,N'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'N EAST,NE'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'N WEST,NW'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'NATIONAL,NATL'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'NE,NE'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'NEAST,NE'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'NECK,NCK'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'NINTH,9TH'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'NORTH,N'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'NORTH,EAST'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'NORTH,WEST'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'NORTH EAST,NE'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'NORTH WEST,NW'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'NORTHEAST,NE'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'NORTHWEST,NW'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'NUMB,NO'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'NUMBER,NO'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'NW,NW'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'NWEST,NW'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'OFFICE,OFC'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'ORCHARD,ORCH'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'ORCHRD,ORCH'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'OVERPASS,OPAS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'OVL,OVAL'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'P,O'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'PARKS,PARK'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'PARKWAY,PKWY'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'PARKWAYS,PKWY'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'PARKWY,PKWY'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'PARTNERSHIP,PRTNRSHP'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'PASEO,PSO'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'PASSAGE,PSGE'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'PATHS,PATH'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'PIKES,PIKE'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'PINE,PNE'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'PINES,PNES'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'PKWAY,PKWY'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'PKWYS,PKWY'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'PKY,PKWY'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'PLACE,PL'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'PLACITA,PLA'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'PLAIN,PLN'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'PLAINS,PLNS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'PLAZA,PLZ'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'PLZA,PLZ'  TO Common_Addr_Terms.csv APPEND
+ COMM EXPORT FIELDS 'PO,BOX'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'PO BOX,PO'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'POBOX,PO'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'POBOX,PO'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'POINT,PT'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'POINTS,PTS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'PORT,PRT'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'PORTS,PRTS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'POST OFFICE,PO'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'POST OFFICE BOX,PO'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'PRAIRIE,PR'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'PRK,PARK'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'PROPRIETARY,PTY'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'PRR,PR'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'RAD,RADL'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'RADIAL,RADL'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'RADIEL,RADL'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'RANCH,RNCH'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'RANCHES,RNCH'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'RANCHO,RCH'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'RAPID,RPD'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'RAPIDS,RPDS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'RDGE,RDG'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'REST,RST'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'RIDGE,RDG'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'RIDGES,RDGS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'RIVER,RIV'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'RIVR,RIV'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'RNCHS,RNCH'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'ROAD,RD'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'ROADS,RDS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'ROUTE,RTE'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'RVR,RIV'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'S,S'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'S EAST,SE'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'S WEST,SW'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'SE,SE'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'SEAST,SE'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'SECOND,2ND'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'SEVENTH,7TH'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'SHOAL,SHL'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'SHOALS,SHLS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'SHOAR,SHR'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'SHOARS,SHRS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'SHORE,SHR'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'SHORES,SHRS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'SIXTH,6TH'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'SKYWAY,SKWY'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'SOUTH,S'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'SOUTH,EAST'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'SOUTH,WEST'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'SOUTH EAST,SE'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'SOUTH WEST,SW'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'SOUTHEAST,SE'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'SOUTHWEST,SW'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'SPNG,SPG'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'SPNGS,SPGS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'SPRING,SPG'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'SPRINGS,SPGS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'SPRNG,SPG'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'SPRNGS,SPGS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'SPURS,SPUR'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'SQR,SQ'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'SQRE,SQ'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'SQRS,SQS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'SQU,SQ'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'SQUARE,SQ'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'SQUARES,SQS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'STATION,STA'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'STATN,STA'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'STN,STA'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'STR,ST'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'STRAV,STRA'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'STRAVEN,STRA'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'STRAVENUE,STRA'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'STRAVN,STRA'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'STREAM,STRM'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'STREET,ST'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'STREET,ST'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'STREET,ST'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'STREETS,STS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'STREME,STRM'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'STRT,ST'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'STRVN,STRA'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'STRVNUE,STRA'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'SUITE,STE'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'SUMIT,SMT'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'SUMITT,SMT'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'SUMMIT,SMT'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'SWEST,SW'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'SYSTEM,SYS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'SYSTEMS,SYS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'TENTH,10TH'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'TERR,TER'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'TERRACE,TER'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'THIRD,3RD'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'THROUGHWAY,TRWY'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'TRACE,TRCE'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'TRACES,TRCE'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'TRACK,TRAK'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'TRACKS,TRAK'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'TRAFFICWAY,TRFY'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'TRAIL,TRL'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'TRAILER,TRLR'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'TRAILS,TRL'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'TRK,TRAK'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'TRKS,TRAK'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'TRLRS,TRLR'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'TRLS,TRL'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'TRNPK,TPKE'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'TUNEL,TUNL'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'TUNLS,TUNL'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'TUNNEL,TUNL'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'TUNNELS,TUNL'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'TUNNL,TUNL'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'TURNPIKE,TPKE'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'TURNPK,TPKE'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'UNDERPASS,UPAS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'UNION,UN'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'UNIONS,UNS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'VALLEY,VLY'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'VALLEYS,VLYS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'VALLY,VLY'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'VDCT,VIA'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'VEREDA,VER'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'VIADCT,VIA'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'VIADUCT,VIA'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'VIEW,VW'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'VIEWS,VWS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'VILL,VLG'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'VILLAG,VLG'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'VILLAGE,VLG'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'VILLAGES,VLGS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'VILLE,VL'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'VILLG,VLG'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'VILLIAGE,VLG'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'VIST,VIS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'VISTA,VIS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'VLLY,VLY'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'VST,VIS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'VSTA,VIS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'W,W'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'WALKS,WALK'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'WELL,WL'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'WELLS,WLS'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'WEST,W'  TO Common_Addr_Terms.csv APPEND
+ EXPORT FIELDS 'WY,WAY'  TO Common_Addr_Terms.csv APPEND
+
+ COMMENT *** Import CSV file with list of address terms from the script folder. 
+ IMPORT DELIMITED TO Common_Addr_Terms "Common_Addr_Terms.fil" FROM Common_Addr_Terms.csv 0 SEPARATOR "," QUALIFIER "'" CONSECUTIVE STARTLINE 1 KEEPTITLE FIELD "Address_Term" C AT 1 DEC 0 WID 50 PIC "" AS "" FIELD "Abbreviation" C AT 51 DEC 0 WID 50 PIC "" AS "" 
+
+ COMMENT *** Create temporary dynamic script to create REPLACE() expressions for each address term in the list and its respecitive abbreviation.
+ OPEN Common_Addr_Terms
+ EXPORT FIELDS 'GROUP' TO T_Script.aclscript FIRST 1
+ EXPORT FIELDS 'v_addr = UPPER(Clean_Address)' TO T_Script.aclscript FIRST 1 APPEND
+ GROUP
+   EXPORT FIELDS "v_addr = REPLACE(v_addr ' " Address_Term "'  ' " Abbreviation "')" TO T_Script.aclscript APPEND DELIMITED SEPARATOR ' ' QUALIFIER ""  
+ END
+ EXPORT FIELD "EXTRACT FIELDS ALLTRIM(v_addr) AS 'Std_Address' ALL TO T_Input_Clean" TO T_Script.aclscript FIRST 1 APPEND
+ EXPORT FIELDS 'END' TO T_Script.aclscript FIRST 1 APPEND
+
+
+COMMENT
+********************************************************************************
+Process business data (Transaction / Master table)
+******************************************************************************** 
+ 
+ COMMENT *** Extract data to a temporary table to avoid modifying the original table. 
+ OPEN %v_input_table%
+ EXTRACT FIELDS ALL TO T_Input
+  
+ COMMENT *** Use metadata to get original field list of input table
+ OPEN T_Input
+ SAVE LAYOUT TABLE TO T_Metadata
+ 
+ COMMENT *** Create variable holding original field list
+ OPEN T_Metadata
+ v_all_fieldlist = BLANKS(20000)
+ GROUP
+  v_all_fieldlist = ALLTRIM(v_all_fieldlist) + ' ' + ALLTRIM(field_name)
+ END
+ 
+ COMMENT *** Insert the standardized address field after the original field. 
+ v_all_fieldlist = REPLACE(UPPER(v_all_fieldlist) UPPER('%v_test_field%') '%v_test_field% Std_Address')
+ 
+ COMMENT *** Create a computed field to retain only alphanumeric characters and spaces
+ OPEN T_Input
+ DELETE FIELD Clean_Address OK
+ DEFINE FIELD Clean_Address COMPUTED SUBSTR(' ' + ALLTRIM(INCLUDE(UPPER(%v_test_field%)  'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789& ')) 1 50)
+
+ COMMENT *** Apply the dynamic script created above, to replace common terms with their respective abbreviations. Creates T_Input_Clean
+ OPEN T_Input
+ DO T_Script.aclscript
+ 
+ COMMENT *** Extract fields to final result file with the standardized address field inserted next to the original address field.
+ OPEN T_Input_Clean
+
+
+
+SET FOLDER /T_WORKING_DATA
+
+ EXTRACT FIELDS %v_all_fieldlist% TO %v_output_table%
+ 
+ OPEN %v_output_table%
+
+
+DELETE "Common_Addr_Terms.csv" OK
+
+SET SYSTEM 39 1 
+DELETE FOLDER /TMP_ADDR_STD OK
+DELETE T_Script.aclscript OK 
+SET SYSTEM 39 0
+
+
+
+

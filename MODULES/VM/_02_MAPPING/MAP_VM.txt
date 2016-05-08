@@ -1,0 +1,36 @@
+COMM***************************************************************************
+COMM *** SATORI EVA ACL APPLICATION
+COMM *** Load the data mapping information from Excel file - generate the relationship between Target Fields and Source Fields for the Standard Tables
+COMM *** User can set the mapping in the excel file- DataMapping\DataMapping.xlsx
+COMM *** IF source data is from popular ERP systems, then EVA will use the Default Mapping (e.g. SAP, ORACLE, PeopleSoft, JDE...). What you need to do just replace this excel file with the respective mapping.
+COMM *** CREATED BY: NANCY LI FROM SATORI GROUP 0431 057 135
+COMM *** DATE: 5/07/2012
+COMM***************************************************************************
+
+
+DELETE SCRIPT HR_MAP OK
+
+
+
+SET FOLDER /z_WORKING_DATA/DATA_MAP_IMPORT
+
+
+CLOSE PRI SEC
+DIR "%V_EVA_MAPPING_DOC%" TO DATA_MAP_CHECK
+OPEN DATA_MAP_CHECK
+
+COUNT
+IF COUNT1 = 0 "DATA MAPPING EXCEL FILE: %V_EVA_MAPPING_DOC% DOES NOT EXISTS. PLEASE CONFIRM ACCORDINGLY!!!"
+DELETE COUNT1 OK
+
+DELETE FORMAT DATA_MAP_CHECK OK
+
+
+IMPORT EXCEL TO DM_%trg_PR% "%V_WINDOWS_WRK_PATH%\DM_%trg_PR%.fil" FROM "%V_EVA_MAPPING_DOC%" TABLE "%trg_PR%$" CHARMAX 50 KEEPTITLE
+
+IMPORT EXCEL TO DM_%trg_EMF% "%V_WINDOWS_WRK_PATH%\DM_%trg_EMF%.fil" FROM "%V_EVA_MAPPING_DOC%" TABLE "%trg_EMF%$" CHARMAX 50 KEEPTITLE
+
+IMPORT EXCEL TO DM_%trg_EMF_BK% "%V_WINDOWS_WRK_PATH%\DM_%trg_EMF_BK%.fil" FROM "%V_EVA_MAPPING_DOC%" TABLE "%trg_EMF_BK%$" CHARMAX 50 KEEPTITLE 
+
+IMPORT EXCEL TO DM_%trg_EMF_LVE% "%V_WINDOWS_WRK_PATH%\DM_%trg_EMF_LVE%.fil" FROM "%V_EVA_MAPPING_DOC%" TABLE "%trg_EMF_LVE%$" CHARMAX 50 KEEPTITLE
+
